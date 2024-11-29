@@ -42,7 +42,7 @@ LIST URI
     - **response:**
     ```json:output
         {
-          
+          "token":
         }
     ```
 
