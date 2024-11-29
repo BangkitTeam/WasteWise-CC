@@ -31,7 +31,11 @@ LIST URI
     - **response:**
     ```json:output
         {
-          
+            {
+    "id": 1,
+    "username": "ikhwan535",
+    "email": "ikhwan@example.com"
+}
         }
     ```
 -  **POST /api/auth/login**
