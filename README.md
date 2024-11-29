@@ -56,7 +56,7 @@ LIST URI
         }
     ```
     
--  **POST /api/user**
+-  **POST /api/user/edit**
     - **response:**
     ```json:output
         {
