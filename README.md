@@ -37,6 +37,7 @@ LIST URI
             "email": "ikhwan@example.com"
         }
     ```
+    
 -  **POST /api/auth/login**
     - **response:**
     ```json:output
@@ -44,6 +45,7 @@ LIST URI
           "token":
         }
     ```
+    
 -  **GET /api/user**
     - **response:**
     ```json:output
@@ -53,6 +55,7 @@ LIST URI
             "password": "123456"
         }
     ```
+    
 -  **POST /api/user**
     - **response:**
     ```json:output
@@ -77,6 +80,7 @@ LIST URI
             "image_name": "file_name.png"
         }
     ```
+    
 - **GET /api/recommends/:id**
     - **response:**
     ```json:output
@@ -100,6 +104,7 @@ LIST URI
             "status": 200,
         }
     ```
+    
 - **GET ALL /api/history**
     - **response:**
     ```json:output
@@ -123,7 +128,8 @@ LIST URI
             "status": 200,
         }
     ```
-- **GET bookmarks by user_id /api/favorite**
+    
+- **GET favorite by user_id /api/favorite**
     - **response:**
     ```json:output
         {
@@ -145,7 +151,8 @@ LIST URI
             "status": 200,
         }
     ```
-- **POST /api/bookmarks/favorite**
+    
+- **POST /api/favorite/add**
     - **response:**
     ```json:output
         {
@@ -153,7 +160,16 @@ LIST URI
                 "user_id": 1,
                 "user_recommendation_id": 1,
             },
-            "message": "Succesfully added to bookmarks!",
+            "message": "Succesfully added to favorite!",
             "status": 201
+        }
+    ```
+
+- **POST /api/favorite/delete**
+    - **response:**
+    ```json:output
+        {
+            "message": "Succesfully delete the favorite",
+            "status": 204,
         }
     ```
