@@ -35,7 +35,6 @@ LIST URI
             "id": 1,
             "username": "ikhwan535",
             "email": "ikhwan@example.com"
-
         }
     ```
 -  **POST /api/auth/login**
@@ -74,23 +73,8 @@ LIST URI
     - **response:**
     ```json:output
         {
-            "data": {
-                "user_id": 1,
-                "image_name": "filen_name.jpng",
-                "trash_type": "trash type",
-                "recommedations": [
-                    {
-                        "title": "recommendation title1",
-                        "description": "Description..."
-                    },
-                    {
-                        "title": "recommendation title2",
-                        "description": "Description..."
-                    },
-                ],
-            },
-            "message": "Successfully posted the data",
-            "status": 201,
+            "user_id": 1,
+            "image_name": "file_name.png"
         }
     ```
 - **GET /api/recommends/:id**
