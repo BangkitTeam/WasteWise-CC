@@ -45,6 +45,30 @@ LIST URI
           "token":
         }
     ```
+-  **GET /api/user**
+    - **response:**
+    ```json:output
+        {
+            "username": "ikhwan535",
+            "email": "ikhwan@example.com",
+            "password": "123456"
+        }
+    ```
+-  **POST /api/user**
+    - **response:**
+    ```json:output
+        {
+            "message": "Settings updated successfully",
+            "updatedUser": {
+                "id": 2,
+                "username": "myName",
+                "email": "myNewEmail@example.com",
+                "password": "e1a17f094e471c13458934ca5c73d4a1:2b447d51efdd50fa2cf2a9c00a26a744",
+                "createdAt": "2024-11-29T12:15:49.961Z",
+                "updatedAt": "2024-11-29T12:24:46.488Z"
+    }
+        }
+    ```
 
 -  **POST /api/upload**
     - **response:**
