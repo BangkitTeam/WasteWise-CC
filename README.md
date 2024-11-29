@@ -26,7 +26,7 @@ npm run dev
 ```
 
 <br><br>
-##API-Contract
+## API-Contract
 LIST URI
 -  **POST /api/auth/register**
     - **response:**
