@@ -65,7 +65,7 @@ LIST URI
                 "password": "e1a17f094e471c13458934ca5c73d4a1:2b447d51efdd50fa2cf2a9c00a26a744",
                 "createdAt": "2024-11-29T12:15:49.961Z",
                 "updatedAt": "2024-11-29T12:24:46.488Z"
-    }
+            }
         }
     ```
 
