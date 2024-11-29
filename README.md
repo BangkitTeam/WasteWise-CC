@@ -24,8 +24,7 @@ npx prisma migrate dev
 ```bash
 npm run dev
 ```
-
-
+<br>
 ##API-Contract
 LIST URI
 -  **POST /api/auth/register**
