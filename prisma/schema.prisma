@@ -14,4 +14,18 @@ model User {
   password  String // Password
   createdAt DateTime @default(now()) // Timestamp for record creation
   updatedAt DateTime @updatedAt // Timestamp for last update
+
+  uploads  Upload[] // Relasi dengan tabel Upload
+}
+
+model Upload {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  image_name    String
+  image_url    String
+  type    String
+  size    Int
+  description String?  // Make sure this field exists and is nullable (optional)
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
 }
