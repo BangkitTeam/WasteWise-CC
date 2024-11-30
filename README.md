@@ -65,7 +65,7 @@ LIST URI
                 "id": 2,
                 "username": "myName",
                 "email": "myNewEmail@example.com",
-                "password": "e1a17f094e471c13458934ca5c73d4a1:2b447d51efdd50fa2cf2a9c00a26a744",
+                "password": "...",
                 "createdAt": "2024-11-29T12:15:49.961Z",
                 "updatedAt": "2024-11-29T12:24:46.488Z"
             }
@@ -76,8 +76,17 @@ LIST URI
     - **response:**
     ```json:output
         {
-            "user_id": 1,
-            "image_name": "file_name.png"
+            "message": "File uploaded successfully!",
+            "file": {
+                "id": 1,
+                "userId": 1,
+                "image_name": "1733715838459",
+                "image_url": "https://storage.googleapis.com/upload-waste/... .jpeg",
+                "type": "image/jpeg",
+                "size": 92862,
+                "description": null,
+                "createdAt": "2024-11-30T05:40:34.232Z"
+            }
         }
     ```
     
