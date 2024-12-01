@@ -74,7 +74,7 @@ const { validateRequest } = require("../middlewares/validationMiddleware");
 const { uploadSchema } = require("./uploadValidation");
 const { Storage } = require('@google-cloud/storage');
 const dotenv = require('dotenv');
-const { handleFileUpload } = require("./uploadService");
+const { handleFileUpload, getImageUrls } = require("./uploadService");
 
 dotenv.config();
 
@@ -179,9 +179,6 @@ router.post(
     }
   }
 );
-
-
-module.exports = router;
 
 
 
