@@ -33,6 +33,7 @@ npm run dev
 ```
 
 <br><br>
+<<<<<<< HEAD
 
 ## API-Contract
 
@@ -90,6 +91,72 @@ LIST URI
 
       }
   ```
+=======
+## API-Contract
+LIST URI
+-  **POST /api/auth/register**
+    - **response:**
+    ```json:output
+        {
+            "id": 1,
+            "username": "ikhwan535",
+            "email": "ikhwan@example.com"
+        }
+    ```
+    
+-  **POST /api/auth/login**
+    - **response:**
+    ```json:output
+        {
+          "token":
+        }
+    ```
+    
+-  **GET /api/user**
+    - **response:**
+    ```json:output
+        {
+            "username": "ikhwan535",
+            "email": "ikhwan@example.com",
+            "password": "123456"
+        }
+    ```
+    
+-  **POST /api/user/edit**
+    - **response:**
+    ```json:output
+        {
+            "message": "Settings updated successfully",
+            "updatedUser": {
+                "id": 2,
+                "username": "myName",
+                "email": "myNewEmail@example.com",
+                "password": "...",
+                "createdAt": "2024-11-29T12:15:49.961Z",
+                "updatedAt": "2024-11-29T12:24:46.488Z"
+            }
+        }
+    ```
+
+-  **POST /api/upload**
+    - **response:**
+    ```json:output
+        {
+            "message": "File uploaded successfully!",
+            "file": {
+                "id": 1,
+                "userId": 1,
+                "image_name": "1733715838459",
+                "image_url": "https://storage.googleapis.com/upload-waste/... .jpeg",
+                "type": "image/jpeg",
+                "size": 92862,
+                "description": null,
+                "createdAt": "2024-11-30T05:40:34.232Z"
+            }
+        }
+    ```
+    
+>>>>>>> 92d3d322fff55430544d830433638bf58f9ae62f
 - **GET /api/recommends/:id**
   - **response:**
   ```json:output

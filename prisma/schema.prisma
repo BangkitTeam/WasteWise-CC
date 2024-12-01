@@ -65,3 +65,28 @@ model UserRecommendation {
   craft     Craft    @relation(fields: [craftId], references: [id]) 
   user      User     @relation(fields: [userId], references: [id]) 
 }
+
+model UserRecommendation {
+  id          Int       @id @default(autoincrement()) // Primary key
+  userId      Int                                        // Foreign key to User
+  craftId     Int                                        // Foreign key to Craft
+  title       String                                     // Title of the recommendation
+  description String?                                    // Description of the recommendation
+  createdAt   DateTime  @default(now())                 // Timestamp for record creation
+
+  // Relations
+  user        User       @relation(fields: [userId], references: [id])
+  craft       Craft      @relation(fields: [craftId], references: [id])
+}
+
+model Craft {
+  id          Int       @id @default(autoincrement()) // Primary key
+  title       String                                    // Title of the craft
+  description String?                                   // Description of the craft
+  createdAt   DateTime  @default(now())                // Timestamp for record creation
+
+  // Relations
+  recommendations UserRecommendation[]
+}
+
+
