@@ -33,7 +33,6 @@ npm run dev
 ```
 
 <br><br>
-<<<<<<< HEAD
 
 ## API-Contract
 
@@ -156,7 +155,6 @@ LIST URI
         }
     ```
     
->>>>>>> 92d3d322fff55430544d830433638bf58f9ae62f
 - **GET /api/recommends/:id**
   - **response:**
   ```json:output
