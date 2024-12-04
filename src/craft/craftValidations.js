@@ -14,6 +14,22 @@ const createCraftSchema = Joi.object({
     "string.max": "Description can have at most 300 characters",
     "any.required": "Description is required",
   }),
+  wasteType: Joi.string()
+    .valid("Plastic", "Paper", "Metal", "Glass", "Other")
+    .required()
+    .messages({
+      "string.empty": "Waste type cannot be empty",
+      "any.only":
+        "Waste type must be one of [Plastic, Paper, Metal, Glass, Other]",
+      "any.required": "Waste type is required",
+    }),
+  tutorialUrl: Joi.string().uri().optional().messages({
+    "string.uri": "Tutorial URL must be a valid URL",
+  }),
+  imageUrl: Joi.string().uri().optional().messages({
+    "string.uri": "Image URL must be a valid URL",
+    "string.base": "Image URL must be a string",
+  }),
 });
 
 module.exports = { createCraftSchema };
