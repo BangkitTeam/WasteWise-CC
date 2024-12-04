@@ -1,74 +1,6 @@
-// CSV
-/*
-const { PrismaClient } = require('@prisma/client');
-const fs = require('fs');
-const csv = require('csv-parser');
-const path = require('path');
-const prisma = new PrismaClient();
-
-// Function to get the latest prediction from the database
-const getLatestPrediction = async () => {
-    try {
-      const prediction = await prisma.prediction.findFirst({
-        orderBy: {
-          createdAt: 'desc', // Sort by createdAt to get the most recent prediction
-        },
-        select: {
-          prediction: true,
-          confidence: true,
-          uploadId: true,
-        },
-      });
-  
-      if (!prediction) {
-        throw new Error('No predictions found.');
-      }
-  
-      return prediction;
-    } catch (error) {
-      console.error('Error fetching the latest prediction:', error);
-      throw new Error('Failed to fetch the latest prediction.');
-    }
-  };
-  
-
-// Function to read CSV file and return recommendations based on waste_type
-const getCraftIdeas = (wasteType) => {
-  return new Promise((resolve, reject) => {
-    const results = [];
-    fs.createReadStream(path.join(__dirname, 'waste.csv')) // Path updated to current directory
-      .pipe(csv({ separator: ';' })) // Use ';' as the delimiter
-      .on('data', (data) => {
-        if (data.waste_type.toLowerCase() === wasteType.toLowerCase()) {
-          results.push({
-            title: data.title,
-            description: data.description,
-          });
-        }
-      })
-      .on('end', () => {
-        if (results.length > 0) {
-          resolve(results);
-        } else {
-          reject(new Error('No craft ideas found for this waste type.'));
-        }
-      })
-      .on('error', (error) => {
-        reject(error);
-      });
-  });
-};
-
-module.exports = {
-  getLatestPrediction,
-  getCraftIdeas,
-};
-*/
-
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Fungsi untuk mendapatkan prediksi terakhir berdasarkan userId
 const getLatestPrediction = async (userId) => {
   try {
     const prediction = await prisma.prediction.findFirst({
@@ -95,7 +27,6 @@ const getLatestPrediction = async (userId) => {
   }
 };
 
-// Fungsi untuk mendapatkan rekomendasi craft berdasarkan waste_type
 const getCraftRecommendations = async (wasteType) => {
   try {
     const recommendations = await prisma.craft.findMany({
@@ -103,6 +34,7 @@ const getCraftRecommendations = async (wasteType) => {
         wasteType: wasteType,
       },
       select: {
+        id: true,
         title: true,
         description: true,
         imageUrl: true,
@@ -120,15 +52,17 @@ const getCraftRecommendations = async (wasteType) => {
   }
 };
 
-// Fungsi untuk mendapatkan gambar upload pengguna berdasarkan userId
 const getUserImage = async (userId) => {
   try {
     const upload = await prisma.upload.findFirst({
       where: {
         userId: userId,
       },
+      orderBy: {
+        createdAt: 'desc', 
+      },
       select: {
-        image_url: true, 
+        image_url: true,
       },
     });
 
@@ -136,27 +70,42 @@ const getUserImage = async (userId) => {
       throw new Error('No upload found for this user.');
     }
 
-    return upload.image_url; 
+    console.log('User Image URL:', upload.image_url); 
+    return upload.image_url;
   } catch (error) {
     console.error('Error fetching user image:', error);
     throw new Error('Failed to fetch user image.');
   }
 };
 
-// Fungsi utama untuk mendapatkan rekomendasi berdasarkan prediksi terakhir
+
 const getRecommendationsBasedOnPrediction = async (userId) => {
   try {
     const prediction = await getLatestPrediction(userId);
-    
-    const recommendations = await getCraftRecommendations(prediction.prediction);
+    console.log('Prediction:', prediction);
 
+
+    const recommendations = await getCraftRecommendations(prediction.prediction);
+    console.log('Recommendations:', recommendations); 
+
+    // Mendapatkan URL gambar user
     const userImageUrl = await getUserImage(userId);
+    console.log('User Image URL:', userImageUrl); 
+
+
+    const craftIds = recommendations.map(rec => rec.id);
+    await saveUserRecommendation(userId, craftIds);
 
     return {
-      userId: userId,
-      prediction_confidence: prediction.confidence,
+      user_id: userId,
       image_url: userImageUrl,
-      recommendations: recommendations,
+      confidence: prediction.confidence,
+      prediction: prediction.prediction,
+      recommendations: recommendations.map((rec) => ({
+        title: rec.title,
+        description: rec.description,
+        imageUrl: rec.imageUrl,
+      })),
     };
   } catch (error) {
     console.error('Error getting recommendations based on prediction:', error);
@@ -164,19 +113,22 @@ const getRecommendationsBasedOnPrediction = async (userId) => {
   }
 };
 
-// Fungsi untuk menyimpan rekomendasi pengguna ke dalam tabel UserRecommendation
-const saveUserRecommendation = async (userId, craftId) => {
+const saveUserRecommendation = async (userId, craftIds) => {
   try {
-    await prisma.userRecommendation.create({
-      data: {
-        userId: userId,
-        craftId: craftId,
-      },
+    const userRecommendations = craftIds.map(craftId => ({
+      userId: userId,
+      craftId: craftId,
+    }));
+
+    const result = await prisma.userrecommendation.createMany({
+      data: userRecommendations,
+      skipDuplicates: true, 
     });
-    console.log('User recommendation saved');
+
+    console.log(`${result.count} recommendations saved for userId: ${userId}`);
   } catch (error) {
-    console.error('Error saving user recommendation:', error);
-    throw new Error('Failed to save user recommendation.');
+    console.error('Error saving user recommendations:', error);
+    throw new Error('Failed to save user recommendations.');
   }
 };
 

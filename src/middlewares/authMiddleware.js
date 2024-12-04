@@ -8,7 +8,7 @@ const authenticateJWT = (
   res,
   next
 ) => {
-  const token = req.headers["authorization"]?.split(" ")[1];
+  const token = req.headers["authorization"]?.split(" ")[1]; // Get the token from the Authorization header
 
   if (!token) throw res.status(403).json({ error: "No token provided" });
 
@@ -18,7 +18,7 @@ const authenticateJWT = (
       return res.status(403).json({ error: "Invalid token" });
     }
 
-    req.user = user;
+    req.user = user; // Attach the user info to the request object
     next();
   });
 };

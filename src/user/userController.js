@@ -6,6 +6,7 @@ const { updateSettingsSchema } = require("./userValidations");
 
 const router = Router();
 
+// Controller method to get the logged-in user's settings
 router.get(
   "/settings",
   authenticateJWT,

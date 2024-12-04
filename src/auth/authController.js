@@ -27,9 +27,11 @@ router.post(
     const { email, password } = req.body;
 
     try {
+      // Call the service function to login the user and generate a token
       const { token } = await loginUser(email, password);
       res.status(200).json({ token });
     } catch (error) {
+      // Handle errors (e.g., invalid credentials)
       res.status(400).json({ error: error.message });
     }
   }

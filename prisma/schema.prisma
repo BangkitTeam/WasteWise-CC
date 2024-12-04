@@ -15,23 +15,23 @@ model User {
   createdAt DateTime @default(now()) // Timestamp for record creation
   updatedAt DateTime @updatedAt // Timestamp for last update
 
-  uploads  Upload[] // Relasi dengan tabel Upload
-  predictions Prediction[]
-  UserRecommendations UserRecommendation[]
+  uploads  Upload[] // Relation with the Upload table
+  predictions Prediction[] // Relation with the Prediction table
+  userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
 }
 
 model Upload {
   id          Int      @id @default(autoincrement())
   userId      Int
-  image_name    String
-  image_url    String
-  type    String
-  size    Int
-  description String?  // Make sure this field exists and is nullable (optional)
-  user        User     @relation(fields: [userId], references: [id])
+  image_name  String
+  image_url   String
+  type        String
+  size        Int
+  description String?  // Optional field
   createdAt   DateTime @default(now())
 
-  predictions Prediction[]
+  user        User     @relation(fields: [userId], references: [id])
+  predictions Prediction[] // Relation with the Prediction table
 }
 
 model Prediction {
@@ -39,8 +39,8 @@ model Prediction {
   uploadId    Int      // Foreign key to the Upload table
   prediction  String   // Name of the predicted class
   confidence  Float    // Confidence score of the prediction
-  createdAt   DateTime @default(now()) // Timestamp for when prediction was created
-  userId      Int     @default(0) // Optional, with a default value to avoid error
+  createdAt   DateTime @default(now()) // Timestamp for when the prediction was created
+  userId      Int      @default(0) // Optional, with a default value to avoid error
 
   upload      Upload   @relation(fields: [uploadId], references: [id]) 
   user        User     @relation(fields: [userId], references: [id]) 
@@ -48,45 +48,24 @@ model Prediction {
 
 model Craft {
   id          Int      @id @default(autoincrement())
-  wasteType   String  // Kolom waste_type untuk mengaitkan craft dengan jenis 
-  title       String
+  wasteType   String  // Waste type for associating crafts with types
+  title       String   @unique
   description String?
   imageUrl    String?
   tutorialUrl String?
-  UserRecommendations UserRecommendation[] // Relasi dengan tabel Recommendation
+  createdAt          DateTime  @default(now()) 
+  updatedAt          DateTime  @updatedAt
+
+  userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
 }
 
-model UserRecommendation {
-  id        Int      @id @default(autoincrement()) // ID unik
-  userId    Int      // ID pengguna yang menerima rekomendasi
-  craftId   Int      // ID craft yang direkomendasikan
-  createdAt   DateTime  @default(now()) 
-  
-  craft     Craft    @relation(fields: [craftId], references: [id]) 
-  user      User     @relation(fields: [userId], references: [id]) 
+model Userrecommendation {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  craftId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt // Automatically updated on record modification
+
+  user      User     @relation(fields: [userId], references: [id])
+  craft     Craft    @relation(fields: [craftId], references: [id])
 }
-
-model UserRecommendation {
-  id          Int       @id @default(autoincrement()) // Primary key
-  userId      Int                                        // Foreign key to User
-  craftId     Int                                        // Foreign key to Craft
-  title       String                                     // Title of the recommendation
-  description String?                                    // Description of the recommendation
-  createdAt   DateTime  @default(now())                 // Timestamp for record creation
-
-  // Relations
-  user        User       @relation(fields: [userId], references: [id])
-  craft       Craft      @relation(fields: [craftId], references: [id])
-}
-
-model Craft {
-  id          Int       @id @default(autoincrement()) // Primary key
-  title       String                                    // Title of the craft
-  description String?                                   // Description of the craft
-  createdAt   DateTime  @default(now())                // Timestamp for record creation
-
-  // Relations
-  recommendations UserRecommendation[]
-}
-
-
