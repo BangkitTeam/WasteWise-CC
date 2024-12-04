@@ -26,8 +26,9 @@ const createCraftSchema = Joi.object({
   tutorialUrl: Joi.string().uri().optional().messages({
     "string.uri": "Tutorial URL must be a valid URL",
   }),
-  imageUrl: Joi.string().optional().messages({
-    "string.base": "Image must be a string",
+  imageUrl: Joi.string().uri().optional().messages({
+    "string.uri": "Image URL must be a valid URL",
+    "string.base": "Image URL must be a string",
   }),
 });
 
