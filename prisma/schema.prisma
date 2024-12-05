@@ -15,9 +15,10 @@ model User {
   createdAt DateTime @default(now()) // Timestamp for record creation
   updatedAt DateTime @updatedAt // Timestamp for last update
 
-  uploads  Upload[] // Relation with the Upload table
-  predictions Prediction[] // Relation with the Prediction table
+  uploads             Upload[]            // Relation with the Upload table
+  predictions         Prediction[]        // Relation with the Prediction table
   userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
+  histories           History[]           // Relasi balik ke History
 }
 
 model Upload {
@@ -49,12 +50,12 @@ model Prediction {
 model Craft {
   id          Int      @id @default(autoincrement())
   wasteType   String  // Waste type for associating crafts with types
-  title       String   @unique
+  title       String  @unique
   description String?
   imageUrl    String?
   tutorialUrl String?
-  createdAt          DateTime  @default(now()) 
-  updatedAt          DateTime  @updatedAt
+  createdAt   DateTime @default(now()) 
+  updatedAt   DateTime @updatedAt
 
   userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
 }
@@ -68,4 +69,15 @@ model Userrecommendation {
 
   user      User     @relation(fields: [userId], references: [id])
   craft     Craft    @relation(fields: [craftId], references: [id])
+  histories History[]  // Relation with History table
+}
+
+model History {
+  id                   Int      @id @default(autoincrement())  // Primary key
+  userId               Int      // Foreign key ke tabel User
+  userRecommendationId Int      // Foreign key ke tabel Userrecommendation
+  recommendedAt        DateTime @default(now()) // Waktu rekomendasi diberikan
+  
+  user                 User          @relation(fields: [userId], references: [id])
+  userRecommendation   Userrecommendation @relation(fields: [userRecommendationId], references: [id]) // Perbaikan penamaan relasi
 }
