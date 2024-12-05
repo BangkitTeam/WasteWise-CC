@@ -38,12 +38,3 @@ npm run dev
 https://documenter.getpostman.com/view/39625990/2sAYBYgWGu/
 
 
-
-- **POST /api/favorite/delete**
-  - **response:**
-  ```json:output
-      {
-          "message": "Succesfully delete the favorite",
-          "status": 204,
-      }
-  ```
