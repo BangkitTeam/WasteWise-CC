@@ -2,6 +2,12 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const addCraft = async (crafts) => {
+
+  // Ensure that crafts is always an array
+  if (!Array.isArray(crafts)) {
+    crafts = [crafts]; // Convert single object to an array
+  }
+
   for (let craft of crafts) {
     const existingCraft = await prisma.craft.findUnique({
       where: {
@@ -23,7 +29,12 @@ const addCraft = async (crafts) => {
 };
 
 const getCrafts = async () => {
-  return await prisma.craft.findMany();
+
+  return await prisma.craft.findMany({
+    include: {
+      userrecommendations: true, // Correct the field name here
+    },
+  });
 };
 
 const deleteCraft = async (id) => {

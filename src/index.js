@@ -18,6 +18,11 @@ app.use("/craft", craftController);
 app.use("/user/history", historyController);
 app.use("/user/bookmark", bookmarkController);
 
+
+app.listen(4000, () => {
+  console.log("Express server is running on port 4000");
+});
+
 // const port = process.env.PORT || 8080;
 // const hostname = process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0';
 // app.listen(port, hostname, async (error) => {
