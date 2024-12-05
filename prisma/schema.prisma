@@ -15,9 +15,11 @@ model User {
   createdAt DateTime @default(now()) // Timestamp for record creation
   updatedAt DateTime @updatedAt // Timestamp for last update
 
-  uploads  Upload[] // Relation with the Upload table
-  predictions Prediction[] // Relation with the Prediction table
+  uploads             Upload[] // Relation with the Upload table
+  predictions         Prediction[] // Relation with the Prediction table
   userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
+  History             History[]
+  Bookmark            Bookmark[]
 }
 
 model Upload {
@@ -27,34 +29,34 @@ model Upload {
   image_url   String
   type        String
   size        Int
-  description String?  // Optional field
+  description String? // Optional field
   createdAt   DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
   predictions Prediction[] // Relation with the Prediction table
 }
 
 model Prediction {
-  id          Int      @id @default(autoincrement()) // Primary key, auto-incrementing
-  uploadId    Int      // Foreign key to the Upload table
-  prediction  String   // Name of the predicted class
-  confidence  Float    // Confidence score of the prediction
-  createdAt   DateTime @default(now()) // Timestamp for when the prediction was created
-  userId      Int      @default(0) // Optional, with a default value to avoid error
+  id         Int      @id @default(autoincrement()) // Primary key, auto-incrementing
+  uploadId   Int // Foreign key to the Upload table
+  prediction String // Name of the predicted class
+  confidence Float // Confidence score of the prediction
+  createdAt  DateTime @default(now()) // Timestamp for when the prediction was created
+  userId     Int      @default(0) // Optional, with a default value to avoid error
 
-  upload      Upload   @relation(fields: [uploadId], references: [id]) 
-  user        User     @relation(fields: [userId], references: [id]) 
+  upload Upload @relation(fields: [uploadId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Craft {
   id          Int      @id @default(autoincrement())
-  wasteType   String  // Waste type for associating crafts with types
+  wasteType   String // Waste type for associating crafts with types
   title       String   @unique
   description String?
   imageUrl    String?
   tutorialUrl String?
-  createdAt          DateTime  @default(now()) 
-  updatedAt          DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
 }
@@ -66,6 +68,28 @@ model Userrecommendation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt // Automatically updated on record modification
 
-  user      User     @relation(fields: [userId], references: [id])
-  craft     Craft    @relation(fields: [craftId], references: [id])
+  user     User       @relation(fields: [userId], references: [id])
+  craft    Craft      @relation(fields: [craftId], references: [id])
+  History  History[]
+  Bookmark Bookmark[]
+}
+
+model History {
+  id                   Int      @id @default(autoincrement()) // Primary key
+  userId               Int // Foreign key ke tabel User
+  userRecommendationId Int // Foreign key ke tabel Userrecommendation
+  recommendedAt        DateTime @default(now()) // Waktu rekomendasi diberikan
+
+  user               User               @relation(fields: [userId], references: [id])
+  userRecommendation Userrecommendation @relation(fields: [userRecommendationId], references: [id]) // Perbaikan penamaan relasi
+}
+
+model Bookmark {
+  id                   Int @id @default(autoincrement())
+  userId               Int
+  userRecommendationId Int
+  createdAt            DateTime @default(now())
+  
+  user               User               @relation(fields: [userId], references: [id])
+  userRecommendation Userrecommendation @relation(fields: [userRecommendationId], references: [id])
 }

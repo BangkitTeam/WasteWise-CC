@@ -1,75 +1,33 @@
 const { Router } = require("express");
-<<<<<<< HEAD
-const { addCraft, getCrafts, deleteCraft, updateCraft, } = require("./craftService");
-=======
-const multer = require("multer");
-const { addCraft, getCrafts, deleteCraft } = require("./craftService");
->>>>>>> 95e748c63b4e77392e11a0d0a95bc3c128112186
+const {
+  addCraft,
+  getCrafts,
+  deleteCraft,
+  updateCraft,
+} = require("./craftService");
 const { validateRequest } = require("../middlewares/validationMiddleware");
 const { createCraftSchema } = require("./craftValidation");
 
 const router = Router();
 
-<<<<<<< HEAD
-router.post(
-    "/addcrafts",
-    validateRequest(createCraftSchema),
-    async (req, res) => {
-      const crafts = req.body;
-  
-      try {
-        const addedCrafts = await addCraft(crafts); 
-        res.status(201).json({
-          message: "Crafts added successfully",
-          addedCrafts: addedCrafts, 
-        });
-      } catch (error) {
-        res.status(400).json({ error: error.message });
-      }
-=======
-// Konfigurasi multer untuk mengelola upload file
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, "./craftImage"); // Folder tempat menyimpan file
-    },
-    filename: (req, file, cb) => {
-      cb(null, `${Date.now()}-${file.originalname}`); // Penamaan file
-    },
-  }),
-  fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = ["image/jpg", "image/jpeg", "image/png"];
-    if (allowedMimeTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type. Only JPG, JPEG, and PNG are allowed."));
-    }
-  },
-});
-
-// Route untuk menambah Craft
 router.post(
   "/addcrafts",
-  upload.single("imageUrl"),
   validateRequest(createCraftSchema),
   async (req, res) => {
-    const { title, description, wasteType, tutorialUrl } = req.body; // Menangkap tutorialUrl
-    const imageUrl = req.file ? `/craftImage/${req.file.filename}` : null;
+    const crafts = req.body;
+
     try {
-      const addedCraft = await addCraft(
-        title,
-        description,
-        wasteType,
-        imageUrl,
-        tutorialUrl // Menambahkan tutorialUrl
-      );
-      res.status(201).json({ message: "Craft added successfully", addedCraft });
+      const addedCrafts = await addCraft(crafts);
+      res.status(201).json({
+        message: "Crafts added successfully",
+        addedCrafts: addedCrafts,
+      });
     } catch (error) {
       res.status(400).json({ error: error.message });
->>>>>>> 95e748c63b4e77392e11a0d0a95bc3c128112186
     }
-  );
-  
+  }
+);
+
 // Dapatkan Semua Craft
 router.get("/crafts", async (req, res, next) => {
   try {
@@ -80,26 +38,15 @@ router.get("/crafts", async (req, res, next) => {
   }
 });
 
-<<<<<<< HEAD
 router.delete("/crafts/:id", async (req, res, next) => {
-=======
-// Route untuk menghapus Craft
-router.delete("/crafts/:id", async (req, res) => {
->>>>>>> 95e748c63b4e77392e11a0d0a95bc3c128112186
   const { id } = req.params;
 
   try {
     const response = await deleteCraft(Number(id));
-<<<<<<< HEAD
     res.status(200).json({
       message: `Craft ID ${id} deleted successfully`,
       response,
     });
-=======
-    res
-      .status(200)
-      .json({ message: `Craft ID ${id} deleted successfully`, response });
->>>>>>> 95e748c63b4e77392e11a0d0a95bc3c128112186
   } catch (error) {
     next(error);
   }
@@ -107,24 +54,24 @@ router.delete("/crafts/:id", async (req, res) => {
 
 // Update Craft
 router.put(
-    "/crafts/:id", 
-    validateRequest(createCraftSchema),
-    async (req, res) => {
-      const { id } = req.params; 
-      const craft = req.body;
-      
-      try {
-        const updatedCraft = await updateCraft(id, craft);
-        res.status(200).json({ message: "Craft updated successfully", updatedCraft });
-      } catch (error) {
-        res.status(400).json({ error: error.message });
-      }
+  "/crafts/:id",
+  validateRequest(createCraftSchema),
+  async (req, res) => {
+    const { id } = req.params;
+    const craft = req.body;
+
+    try {
+      const updatedCraft = await updateCraft(id, craft);
+      res
+        .status(200)
+        .json({ message: "Craft updated successfully", updatedCraft });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
     }
-  );
-  
+  }
+);
+
 module.exports = router;
-<<<<<<< HEAD
-=======
 
 /*
 const { Router } = require("express");
@@ -241,4 +188,3 @@ router.delete("/crafts/:id", async (req, res) => {
 
 module.exports = router;
 */
->>>>>>> 95e748c63b4e77392e11a0d0a95bc3c128112186
