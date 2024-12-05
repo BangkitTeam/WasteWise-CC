@@ -1,4 +1,3 @@
-=======
 # WasteWise-CC
 
 ### 1. Navigate to the Project Folder
