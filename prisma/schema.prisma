@@ -12,6 +12,7 @@ model User {
   username  String   @unique // Unique username
   email     String   @unique // Unique email
   password  String // Password
+  profilePicture String? 
   createdAt DateTime @default(now()) // Timestamp for record creation
   updatedAt DateTime @updatedAt // Timestamp for last update
 
@@ -19,6 +20,7 @@ model User {
   predictions         Prediction[]        // Relation with the Prediction table
   userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
   histories           History[]           // Relasi balik ke History
+  favorite            Favorite[]           // Relasi balik ke Favorite
 }
 
 model Upload {
@@ -70,6 +72,7 @@ model Userrecommendation {
   user      User     @relation(fields: [userId], references: [id])
   craft     Craft    @relation(fields: [craftId], references: [id])
   histories History[]  // Relation with History table
+  favorite            Favorite[]           // Relasi balik ke Favorite
 }
 
 model History {
@@ -80,4 +83,15 @@ model History {
   
   user                 User          @relation(fields: [userId], references: [id])
   userRecommendation   Userrecommendation @relation(fields: [userRecommendationId], references: [id]) // Perbaikan penamaan relasi
+}
+
+model Favorite {
+  id                   Int @id @default(autoincrement())
+  userId               Int
+  userRecommendationId Int
+  createdAt            DateTime @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  user               User               @relation(fields: [userId], references: [id])
+  userRecommendation Userrecommendation @relation(fields: [userRecommendationId], references: [id])
 }

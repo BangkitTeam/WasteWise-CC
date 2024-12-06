@@ -5,6 +5,8 @@ const uploadController = require("./upload/uploadController");
 const recommendController = require("./recommend/recommendController");
 const craftController = require("./craft/craftController");
 const historyController = require("./history/historyController"); 
+const profilePictureController = require("./profilePicture/profilePictureController"); 
+const favoriteController = require("./favorite/favoriteController");
 
 const app = express();
 app.use(express.json());
@@ -15,10 +17,13 @@ app.use("/upload", uploadController);
 app.use("/recommend", recommendController);
 app.use("/craft", craftController);
 app.use("/history", historyController);
+app.use("/user/favorite", favoriteController);
+app.use("/pp", profilePictureController);
 
 app.listen(4000, () => {
   console.log("Express server is running on port 4000");
 });
+
 // const port = process.env.PORT || 8080;
 // const hostname = process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0';
 // app.listen(port, hostname, async (error) => {
