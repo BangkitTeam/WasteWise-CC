@@ -95,6 +95,7 @@ const getRecommendationsBasedOnPrediction = async (userId) => {
 
     const craftIds = recommendations.map(rec => rec.id);
     await saveUserRecommendation(userId, craftIds);
+    await saveHistory(userId, craftIds);
 
     return {
       user_id: userId,
@@ -132,7 +133,28 @@ const saveUserRecommendation = async (userId, craftIds) => {
   }
 };
 
+const saveHistory = async (userId, craftIds) => {
+  try {
+    const userHistories = craftIds.map((craftId) => ({
+      userId: userId,
+      craftId: craftId,
+    }));
+
+    const historyResult = await prisma.userHistory.createMany({
+      data: userHistories,
+      skipDuplicates: true, // Hindari duplikasi data
+    });
+
+    console.log(`${historyResult.count} histories saved for userId: ${userId}`);
+  } catch (error) {
+    console.error("Error saving user histories:", error);
+    throw new Error("Failed to save user histories.");
+  }
+};
+
+
 module.exports = {
   getRecommendationsBasedOnPrediction,
   saveUserRecommendation,
+  saveHistory
 };

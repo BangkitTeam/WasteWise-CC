@@ -1,69 +1,83 @@
-const { getUserRecommendationHistory, deleteHistoryById, deleteAllHistoryByUserId, } = require('./historyService');
-const { authenticateJWT } = require('../middlewares/authMiddleware');
-const express = require('express');
-const router = express.Router();
+const { Router } = require("express");
+const {
+  getUserHistory,
+  deleteUserHistoryById,
+  deleteAllUserHistory,
+} = require("./historyService");
+const { authenticateJWT } = require("../middlewares/authMiddleware");
 
-// Endpoint mengambil riwayat rekomendasi berdasarkan userId
+const router = Router();
+
+// Get user history by user ID
 router.get("/user", authenticateJWT, async (req, res) => {
-  const userId = req.user.id;  
-  
   try {
-    const history = await getUserRecommendationHistory(userId);
-    
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const history = await getUserHistory(userId);  // Call the service to fetch user history
+
     if (!history || history.length === 0) {
       return res.status(404).json({
-        message: "No recommendation history found for this user.",
+        message: "No history found for the user.",
       });
     }
 
-    res.json({
+    // Return the response in the desired format
+    return res.status(200).json({
       message: "Recommendation history fetched successfully.",
-      data: history,
+      data: history,  // The data here is already formatted by the service
     });
   } catch (error) {
-    console.error('Error fetching user history:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    console.error(`Error fetching user history: ${error.message}`);
+    return res.status(500).json({
+      error: "An error occurred while fetching user history.",
+      details: error.message,
+    });
   }
 });
 
-router.delete('/histories/:id', authenticateJWT, async (req, res) => {
-  const id = Number(req.params.id);
-
-  if (isNaN(id)) {
-    return res.status(400).json({ message: "Invalid ID format" });
-  }
-
+// Delete specific history entry by ID
+router.delete("/histories/:id", authenticateJWT, async (req, res) => {
   try {
-    const userId = req.user.id; 
-    const result = await deleteHistoryById(id, userId); 
-    if (!result) {
-      return res.status(404).json({ message: "History not found or not authorized to delete." });
+    const userId = req.user.id;
+    const historyId = req.params.id;
+
+    if (!historyId) {
+      return res.status(400).json({ error: "History ID is required" });
     }
 
-    res.status(200).json({ message: "History deleted successfully." });
+    const result = await deleteUserHistoryById(userId, historyId);
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('Error deleting history by ID:', error);
-    res.status(500).json({ message: 'Failed to delete history.', error: error.message });
+    console.error(`Error deleting history entry: ${error.message}`);
+    return res.status(500).json({
+      error: "An error occurred while deleting the history entry.",
+      details: error.message,
+    });
   }
 });
 
-// Delete All History
-router.delete('/histories/user/:userId', authenticateJWT, async (req, res) => {
-  const { userId } = req.params;
-  const requesterId = req.user.id; 
-
-  if (Number(userId) !== requesterId) {
-    return res.status(403).json({ message: "Unauthorized to delete this user's history." });
-  }
-
+// Delete all user history
+router.delete("/user", authenticateJWT, async (req, res) => {
   try {
-    const result = await deleteAllHistoryByUserId(Number(userId), requesterId);
-    res.status(200).json(result);
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const result = await deleteAllUserHistory(userId);
+    return res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(`Error deleting all user history: ${error.message}`);
+    return res.status(500).json({
+      error: "An error occurred while deleting user history.",
+      details: error.message,
+    });
   }
 });
-
-
 
 module.exports = router;

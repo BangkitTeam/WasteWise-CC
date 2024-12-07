@@ -6,25 +6,17 @@ const prisma = new PrismaClient();
 
 // Service method to get the logged-in user's settings
 const getUserSettings = async (userId) => {
-  // Fetch the user from the database using the user's ID
   const user = await prisma.user.findUnique({
     where: { id: parseInt(userId) },
   });
 
-  // If the user does not exist, throw an error
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error("User  not found");
 
-  //  Decrypt the password for the response (optional, but not recommended for security reasons)
   user.password = decryptPassword(user.password);
-
-  // Return the user's settings (username, email, and password)
   return user;
 };
 
-const updateUserSettings = async (
-  userId,
-  newSettings
-) => {
+const updateUserSettings = async (userId, newSettings) => {
   const existingUsername = await prisma.user.findUnique({
     where: { username: newSettings.username },
   });
@@ -41,7 +33,6 @@ const updateUserSettings = async (
 
   newSettings.password = encryptPassword(newSettings.password);
 
-  // Update user settings in the database
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: newSettings,
@@ -50,4 +41,60 @@ const updateUserSettings = async (
   return updatedUser;
 };
 
-module.exports = { getUserSettings, updateUserSettings };
+// New service methods for favorites
+
+// Add a favorite
+const addFavorite = async (userId, userRecommendationId) => {
+  // Ensure userRecommendationId is defined
+  if (!userRecommendationId) {
+    throw new Error("userRecommendationId is required");
+  }
+
+  const favorite = await prisma.userFavorite.create({
+    data: {
+      userId,
+      userRecommendationId,
+    },
+  });
+  return favorite;
+};
+
+// Delete a favorite
+const deleteFavorite = async (userId, favoriteId) => {
+  // Find the favorite to ensure it exists and belongs to the user
+  const favorite = await prisma.userFavorite.findUnique({
+    where: { id: parseInt(favoriteId) },
+  });
+
+  if (!favorite) {
+    throw new Error("Favorite not found");
+  }
+
+  if (favorite.userId !== parseInt(userId)) {
+    throw new Error("Unauthorized to delete this favorite");
+  }
+
+  // Delete the favorite
+  await prisma.userFavorite.delete({
+    where: { id: parseInt(favoriteId) },
+  });
+
+  return { message: "Favorite deleted successfully" };
+};
+
+// Get all favorites for a user
+const getAllFavorites = async (userId) => {
+  const favorites = await prisma.userFavorite.findMany({
+    where: { userId },
+    include: { userRecommendation: true }, // Include related data if needed
+  });
+  return favorites;
+};
+
+module.exports = {
+  getUserSettings,
+  updateUserSettings,
+  addFavorite,
+  deleteFavorite,
+  getAllFavorites,
+};
