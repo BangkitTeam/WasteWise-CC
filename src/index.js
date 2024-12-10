@@ -18,7 +18,7 @@ app.use("/recommend", recommendController);
 app.use("/craft", craftController);
 app.use("/history", historyController);
 app.use("/user/favorite", favoriteController);
-app.use("/pp", profilePictureController);
+app.use("/profile-picture", profilePictureController);
 
 app.listen(4000, () => {
   console.log("Express server is running on port 4000");

@@ -2,37 +2,53 @@ const { Storage } = require('@google-cloud/storage');
 const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const multer = require('multer');
 
-// Inisialisasi Google Cloud Storage
-const storage = new Storage({
-  projectId: 'bangkit-capstone-441807',
-  keyFilename: path.join(__dirname, '../../sv-key.json'), // Ganti dengan path file service account
+// File filter to validate file type
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    // Provide explicit error for unsupported formats
+    cb(new Error('Only JPEG and PNG images are allowed.'));
+  }
+};
+
+// File size limit (5 MB)
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
 });
 
-// Nama bucket di Google Cloud Storage
-const bucketName = 'profile-picture-cb';  // Ganti dengan nama bucket Anda
+// Google Cloud Storage setup
+const storage = new Storage({
+  projectId: 'bangkit-capstone-441807',
+  keyFilename: path.join(__dirname, '../../sv-key.json'),
+});
+
+const bucketName = 'profile-picture-cb';
 const bucket = storage.bucket(bucketName);
 
-// Fungsi untuk mengunggah file ke Cloud Storage
+// Upload file to Google Cloud Storage
 const uploadFileToCloud = async (file, userId) => {
   try {
-    // Membuat nama file acak menggunakan Date.now()
-    const randomFileName = `${Date.now()}-${Math.floor(Math.random() * 10000)}.jpg`;
-
-    // Tentukan destinasi file berdasarkan userId dan nama file acak
+    const fileExtension = file.mimetype === 'image/jpeg' ? '.jpg' : '.png';
+    const randomFileName = `${Date.now()}-${Math.floor(Math.random() * 10000)}${fileExtension}`;
     const destination = `${userId}/${randomFileName}`;
 
-    // Upload file langsung ke Cloud Storage menggunakan buffer jika menggunakan multer dengan memoryStorage
     const stream = bucket.file(destination).createWriteStream({
       metadata: {
-        contentType: file.mimetype, // Set content type sesuai dengan file yang diupload
+        contentType: file.mimetype,
       },
     });
 
-    // Pipe file ke stream Cloud Storage
+    // Stream file to Cloud Storage
     stream.end(file.buffer);
 
-    // Tunggu hingga proses upload selesai
     return new Promise((resolve, reject) => {
       stream.on('finish', () => {
         const publicUrl = `https://storage.googleapis.com/${bucketName}/${destination}`;
@@ -50,10 +66,9 @@ const uploadFileToCloud = async (file, userId) => {
   }
 };
 
-// Fungsi untuk memperbarui foto profil pengguna di database
+// Update user's profile picture URL in the database
 const updateUserProfilePicture = async (userId, profilePictureUrl) => {
   try {
-    console.log(`Updating profile picture for user ${userId} to ${profilePictureUrl}`);
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { profilePicture: profilePictureUrl },
@@ -65,20 +80,17 @@ const updateUserProfilePicture = async (userId, profilePictureUrl) => {
   }
 };
 
-
-// Fungsi untuk menangani upload dan update foto profil
+// Handle profile picture upload and database update
 const handleProfilePictureUpload = async (userId, file) => {
   if (!file) {
     throw new Error('No file uploaded.');
   }
 
   try {
-    // Mengunggah file ke Cloud Storage dan mendapatkan URL-nya
+    // Upload file to Google Cloud Storage and get the URL
     const profilePictureUrl = await uploadFileToCloud(file, userId);
-
-    // Memperbarui URL foto profil pengguna di database
+    // Update the user's profile picture in the database
     await updateUserProfilePicture(userId, profilePictureUrl);
-
     return profilePictureUrl;
   } catch (error) {
     console.error('Error uploading profile picture:', error);
@@ -86,4 +98,23 @@ const handleProfilePictureUpload = async (userId, file) => {
   }
 };
 
-module.exports = { handleProfilePictureUpload };
+// Fetch the user's profile picture URL from the database
+const getUserProfilePicture = async (userId) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, profilePicture: true },
+    });
+
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    return { userId: user.id, profilePicture: user.profilePicture };
+  } catch (error) {
+    console.error('Error fetching user profile picture:', error);
+    throw new Error('Failed to fetch user profile picture.');
+  }
+};
+
+module.exports = { handleProfilePictureUpload, getUserProfilePicture, upload };

@@ -13,10 +13,10 @@ const craftSchema = Joi.object({
     "string.max": "Title can have at most 50 characters",
     "any.required": "Title is required",
   }),
-  description: Joi.string().min(10).max(300).required().messages({
+  description: Joi.string().min(10).max(1500).required().messages({
     "string.empty": "Description cannot be empty",
     "string.min": "Description must have at least 10 characters",
-    "string.max": "Description can have at most 300 characters",
+    "string.max": "Description can have at most 1500 characters",
     "any.required": "Description is required",
   }),
   imageUrl: Joi.string().uri().optional().messages({

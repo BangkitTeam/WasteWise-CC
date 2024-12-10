@@ -1,91 +1,43 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// Fungsi untuk memeriksa apakah riwayat rekomendasi sudah ada
-const isRecommendationHistoryExist = async (userId, recommendationId) => {
-  try {
-    const existingHistory = await prisma.history.findFirst({
-      where: {
-        userId: userId,
-        userRecommendationId: recommendationId, // Pastikan ini adalah ID yang benar
-      },
-    });
-
-    return existingHistory ? true : false;
-  } catch (error) {
-    console.error("Error checking recommendation history existence:", error);
-    throw new Error("Failed to check history existence.");
-  }
-};
-
-// Fungsi untuk menyimpan riwayat rekomendasi ke tabel History
-const saveRecommendationHistory = async (userId, recommendationId) => {
-  try {
-    // Verifikasi apakah recommendationId ada di tabel userrecommendation
-    const userRecommendation = await prisma.userrecommendation.findUnique({
-      where: { id: recommendationId }, // Pastikan mencari berdasarkan ID yang valid dari userrecommendation
-    });
-
-    if (!userRecommendation) {
-      console.log(`User recommendation with ID ${recommendationId} not found.`);
-      throw new Error("User recommendation not found.");
-    }
-
-    // Cek apakah riwayat rekomendasi sudah ada untuk pengguna dan rekomendasi ini
-    const historyExists = await isRecommendationHistoryExist(userId, recommendationId);
-
-    if (historyExists) {
-      console.log("Recommendation history already exists for this user and recommendation.");
-      return;
-    }
-
-    // Menyimpan riwayat rekomendasi ke dalam tabel History
-    await prisma.history.create({
-      data: {
-        userId: userId,
-        userRecommendationId: userRecommendation.id, // Menyimpan ID dari userrecommendation
-      },
-    });
-    console.log("UserId:", userId, "RecommendationId:", recommendationId);
-    console.log("Recommendation history saved successfully.");
-  } catch (error) {
-    console.error("Error saving recommendation history:", error);
-    throw new Error("Failed to save recommendation history.");
-  }
-};
-
 // Fungsi untuk mengambil riwayat rekomendasi berdasarkan userId
 const getUserRecommendationHistory = async (userId) => {
   try {
+    // Mengambil semua rekomendasi yang terkait dengan userId
     const recommendations = await prisma.userrecommendation.findMany({
       where: { userId: userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'desc' }, // Mengurutkan berdasarkan tanggal pembuatan rekomendasi
       include: {
         craft: {
           select: {
             title: true,
             description: true,
             imageUrl: true,
+            tutorialUrl: true,
           },
         },
       },
     });
 
+    // Menghindari duplikasi craftId
     const processedCrafts = new Set();
     const filteredRecommendations = [];
 
     for (const recommendation of recommendations) {
+      const craft = recommendation.craft; // Mengakses craft yang terkait dengan rekomendasi
       if (!processedCrafts.has(recommendation.craftId)) {
-        await saveRecommendationHistory(userId, recommendation.id); // Simpan riwayat rekomendasi berdasarkan ID rekomendasi
-        processedCrafts.add(recommendation.craftId); // Menambahkan craftId ke Set
         filteredRecommendations.push({
           id: recommendation.id,
-          title: recommendation.craft.title,
-          description: recommendation.craft.description,
-          imageUrl: recommendation.craft.imageUrl,
+          title: craft.title,
+          description: craft.description,
+          imageUrl: craft.imageUrl,
+          tutorialUrl: craft.tutorialUrl,
         });
+        processedCrafts.add(recommendation.craftId); // Menandai craftId untuk menghindari duplikasi
       }
     }
+
     console.log("Recommendation history fetched successfully.");
     return filteredRecommendations;
   } catch (error) {
@@ -94,51 +46,48 @@ const getUserRecommendationHistory = async (userId) => {
   }
 };
 
-// Fungsi untuk menghapus riwayat rekomendasi berdasarkan ID
-const deleteHistoryById = async (id, userId) => {
+const deleteRecommendationById = async (id, userId) => {
   try {
-    const history = await prisma.history.findFirst({
+    console.log(`Searching for recommendation in Userrecommendation with id: ${id} and userId: ${userId}`); 
+
+    // Mencari rekomendasi berdasarkan id dan userId di tabel Userrecommendation
+    const recommendation = await prisma.userrecommendation.findFirst({
       where: {
-        id: id,
-        userId: userId,
+        id: id,           // Pastikan id cocok
+        userId: userId,   // Pastikan userId sesuai
       },
     });
 
-    if (!history) {
-      return null;
+    if (!recommendation) {
+      console.log(`No recommendation found with id: ${id} for userId: ${userId}`);
+      return null; // If no recommendation is found
     }
 
-    await prisma.history.delete({ where: { id: id } });
-    return { message: "History deleted successfully." };
-  } catch (error) {
-    console.error('Error deleting history:', error);
-    throw new Error('Failed to delete history.');
-  }
-};
+    console.log(`Found recommendation with id: ${id} for userId: ${userId}. Deleting...`);
 
-// Fungsi untuk menghapus semua riwayat rekomendasi berdasarkan userId
-const deleteAllHistoryByUserId = async (userId, requesterId) => {
-  if (userId !== requesterId) {
-    throw new Error("Unauthorized to delete history of another user.");
-  }
+    try {
+      // Try to delete the recommendation from userrecommendation
+      await prisma.userrecommendation.delete({
+        where: { id: id },
+      });
 
-  try {
-    await prisma.history.deleteMany({
-      where: {
-        userId: userId,
-      },
-    });
-    console.log("All history for user deleted successfully.");
-    return { message: "All history for user deleted successfully." };
+      console.log(`Recommendation with id: ${id} deleted successfully.`);
+      return { message: "Recommendation deleted successfully." };
+    } catch (error) {
+      if (error.code === 'P2003') {  // Foreign key constraint error
+        console.log(`Foreign key constraint error: recommendation with id ${id} is still in favorites.`);
+        return { message: "Recommendation is still in favorites. Please remove it from favorites first." };
+      }
+      console.error(`Error in deleteRecommendationById: ${error.message}`);
+      throw new Error("Failed to delete recommendation: " + error.message);
+    }
   } catch (error) {
-    console.error("Error deleting all history:", error);
-    throw new Error("Failed to delete all history.");
+    console.error(`Error during delete operation: ${error.message}`);
+    throw new Error("Failed to delete recommendation: " + error.message);
   }
 };
 
 module.exports = {
   getUserRecommendationHistory,
-  saveRecommendationHistory,
-  deleteHistoryById,
-  deleteAllHistoryByUserId
+  deleteRecommendationById,
 };

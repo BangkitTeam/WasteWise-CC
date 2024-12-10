@@ -1,13 +1,14 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const axios = require("axios");
-const { Storage } = require('@google-cloud/storage');
+const { Storage } = require("@google-cloud/storage");
 const prisma = new PrismaClient();
-const { getRecommendationsBasedOnPrediction } = require("../recommend/recommendService"); 
-
+const {
+  getRecommendationsBasedOnPrediction,
+} = require("../recommend/recommendService");
 
 // Google Cloud Storage setup
 const storage = new Storage({ keyFilename: process.env.GOOGLE_CLOUD_KEY_PATH });
-const bucket = storage.bucket('upload-waste'); 
+const bucket = storage.bucket("upload-waste");
 
 // Function to handle file upload logic
 const handleFileUpload = async (file, userId, body) => {
@@ -15,7 +16,7 @@ const handleFileUpload = async (file, userId, body) => {
 
   try {
     // Creating a unique file name
-    const uniqueSuffix = Date.now() + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
     const fileExtension = file.mimetype.split("/")[1];
     const uniqueFileName = `${uniqueSuffix}.${fileExtension}`;
 
@@ -26,7 +27,7 @@ const handleFileUpload = async (file, userId, body) => {
     });
 
     return new Promise((resolve, reject) => {
-      blobStream.on('finish', async () => {
+      blobStream.on("finish", async () => {
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileGCS.name}`;
 
         // Save file URL to database
@@ -44,7 +45,7 @@ const handleFileUpload = async (file, userId, body) => {
         resolve({ uploadedFile, publicUrl });
       });
 
-      blobStream.on('error', (error) => {
+      blobStream.on("error", (error) => {
         reject(new Error("GCS Upload Error: " + error));
       });
 
@@ -59,22 +60,42 @@ const handleFileUpload = async (file, userId, body) => {
 // Function to send the image URL to Flask API and get prediction
 const getPredictionFromAPI = async (publicUrl) => {
   try {
-    const mlResponse = await axios.post('https://flask-api-2-397394536573.asia-southeast2.run.app/predict', { image_url: publicUrl });
+    const mlResponse = await axios.post(
+      "https://flask-api-2-397394536573.asia-southeast2.run.app/predict",
+      { image_url: publicUrl }
+    );
 
     if (!mlResponse || !mlResponse.data || !mlResponse.data.prediction) {
       throw new Error("Gagal menerima hasil prediksi dari API Flask.");
     }
 
     const { prediction, confidence } = mlResponse.data;
+
+    // Cek apakah confidence cukup tinggi
+    const threshold = 70; // Atur threshold sesuai kebutuhan
+    if (confidence < threshold) {
+      return {
+        prediction,
+        confidence,
+        message: `Prediksi memiliki confidence yang rendah: ${confidence}%`,
+      };
+    }
+
     return { prediction, confidence };
   } catch (error) {
     console.error("Error sending URL to Flask API:", error);
-    throw new Error("Gagal mengirim URL gambar ke API Flask untuk analisis prediksi.");
+    throw new Error(
+      "Gagal mengirim URL gambar ke API Flask untuk analisis prediksi."
+    );
   }
 };
-
 // Function to save prediction to the database
-const savePredictionToDatabase = async (fileRecord, prediction, confidence, userId) => {
+const savePredictionToDatabase = async (
+  fileRecord,
+  prediction,
+  confidence,
+  userId
+) => {
   try {
     await prisma.prediction.create({
       data: {
@@ -96,4 +117,9 @@ const getRecommendations = async (userId) => {
   return await getRecommendationsBasedOnPrediction(userId);
 };
 
-module.exports = { handleFileUpload, getPredictionFromAPI, savePredictionToDatabase, getRecommendations };
+module.exports = {
+  handleFileUpload,
+  getPredictionFromAPI,
+  savePredictionToDatabase,
+  getRecommendations,
+};

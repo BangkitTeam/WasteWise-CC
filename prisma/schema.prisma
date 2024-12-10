@@ -7,91 +7,91 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement()) // Primary key, auto-incrementing
-  username  String   @unique // Unique username
-  email     String   @unique // Unique email
-  password  String // Password
+model user {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
   profilePicture String? 
-  createdAt DateTime @default(now()) // Timestamp for record creation
-  updatedAt DateTime @updatedAt // Timestamp for last update
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  uploads             Upload[]            // Relation with the Upload table
-  predictions         Prediction[]        // Relation with the Prediction table
-  userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
-  histories           History[]           // Relasi balik ke History
-  favorite            Favorite[]           // Relasi balik ke Favorite
+  uploads             upload[]            
+  predictions         prediction[]        
+  userrecommendations userrecommendation[]
+  histories           history[]           
+  favorite            favorite[]           
 }
 
-model Upload {
+model upload {
   id          Int      @id @default(autoincrement())
   userId      Int
   image_name  String
   image_url   String
   type        String
   size        Int
-  description String?  // Optional field
+  description String? 
   createdAt   DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
-  predictions Prediction[] // Relation with the Prediction table
+  user        user     @relation(fields: [userId], references: [id])
+  predictions prediction[] 
 }
 
-model Prediction {
-  id          Int      @id @default(autoincrement()) // Primary key, auto-incrementing
-  uploadId    Int      // Foreign key to the Upload table
-  prediction  String   // Name of the predicted class
-  confidence  Float    // Confidence score of the prediction
-  createdAt   DateTime @default(now()) // Timestamp for when the prediction was created
-  userId      Int      @default(0) // Optional, with a default value to avoid error
-
-  upload      Upload   @relation(fields: [uploadId], references: [id]) 
-  user        User     @relation(fields: [userId], references: [id]) 
-}
-
-model Craft {
+model prediction {
   id          Int      @id @default(autoincrement())
-  wasteType   String  // Waste type for associating crafts with types
+  uploadId    Int
+  prediction  String
+  confidence  Float
+  createdAt   DateTime @default(now())
+  userId      Int      @default(0)
+
+  upload      upload   @relation(fields: [uploadId], references: [id]) 
+  user        user     @relation(fields: [userId], references: [id]) 
+}
+
+model craft {
+  id          Int      @id @default(autoincrement())
+  wasteType   String
   title       String  @unique
-  description String?
+  description String? @db.VarChar(1500)
   imageUrl    String?
   tutorialUrl String?
   createdAt   DateTime @default(now()) 
   updatedAt   DateTime @updatedAt
 
-  userrecommendations Userrecommendation[] // Relation with the Userrecommendation table
+  userrecommendations userrecommendation[]
 }
 
-model Userrecommendation {
+model userrecommendation {
   id        Int      @id @default(autoincrement())
   userId    Int
   craftId   Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt // Automatically updated on record modification
+  updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id])
-  craft     Craft    @relation(fields: [craftId], references: [id])
-  histories History[]  // Relation with History table
-  favorite            Favorite[]           // Relasi balik ke Favorite
+  user      user     @relation(fields: [userId], references: [id])
+  craft     craft    @relation(fields: [craftId], references: [id])
+  histories history[]
+  favorite  favorite[]
 }
 
-model History {
-  id                   Int      @id @default(autoincrement())  // Primary key
-  userId               Int      // Foreign key ke tabel User
-  userRecommendationId Int      // Foreign key ke tabel Userrecommendation
-  recommendedAt        DateTime @default(now()) // Waktu rekomendasi diberikan
+model history {
+  id                   Int      @id @default(autoincrement())
+  userId               Int
+  userRecommendationId Int
+  recommendedAt        DateTime @default(now())
   
-  user                 User          @relation(fields: [userId], references: [id])
-  userRecommendation   Userrecommendation @relation(fields: [userRecommendationId], references: [id]) // Perbaikan penamaan relasi
+  user                 user                 @relation(fields: [userId], references: [id])
+  userRecommendation   userrecommendation   @relation(fields: [userRecommendationId], references: [id])
 }
 
-model Favorite {
+model favorite {
   id                   Int @id @default(autoincrement())
   userId               Int
   userRecommendationId Int
   createdAt            DateTime @default(now())
-  updatedAt          DateTime  @updatedAt
+  updatedAt            DateTime @updatedAt
   
-  user               User               @relation(fields: [userId], references: [id])
-  userRecommendation Userrecommendation @relation(fields: [userRecommendationId], references: [id])
+  user               user               @relation(fields: [userId], references: [id])
+  userRecommendation userrecommendation @relation(fields: [userRecommendationId], references: [id])
 }

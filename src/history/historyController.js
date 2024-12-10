@@ -1,69 +1,57 @@
-const { getUserRecommendationHistory, deleteHistoryById, deleteAllHistoryByUserId, } = require('./historyService');
-const { authenticateJWT } = require('../middlewares/authMiddleware');
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const { getUserRecommendationHistory, deleteRecommendationById } = require("./historyService");
+const { authenticateJWT } = require('../middlewares/authMiddleware');
 
-// Endpoint mengambil riwayat rekomendasi berdasarkan userId
-router.get("/user", authenticateJWT, async (req, res) => {
-  const userId = req.user.id;  
-  
+// Middleware untuk autentikasi JWT pada rute yang memerlukan autentikasi
+router.use(authenticateJWT);
+
+// Controller untuk mendapatkan riwayat rekomendasi berdasarkan userId
+router.get("/recommendation", async (req, res) => {
+  const userId = req.user.id;  // Mengambil userId dari token JWT yang sudah di-decode oleh middleware
+
   try {
-    const history = await getUserRecommendationHistory(userId);
-    
-    if (!history || history.length === 0) {
-      return res.status(404).json({
-        message: "No recommendation history found for this user.",
-      });
-    }
-
-    res.json({
+    const recommendations = await getUserRecommendationHistory(userId);
+    return res.status(200).json({
       message: "Recommendation history fetched successfully.",
-      data: history,
+      data: recommendations,
     });
   } catch (error) {
-    console.error('Error fetching user history:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    return res.status(500).json({
+      message: "Failed to fetch recommendation history.",
+      error: error.message,
+    });
   }
 });
 
-router.delete('/histories/:id', authenticateJWT, async (req, res) => {
-  const id = Number(req.params.id);
+// Controller untuk menghapus rekomendasi berdasarkan ID
+router.delete("/delete-recommendation/:id", async (req, res) => {
+  const id = parseInt(req.params.id);  // Mengakses ID dari parameter URL dan memastikan menjadi integer
+  const userId = req.user.id; // Mengambil userId dari request (JWT)
 
-  if (isNaN(id)) {
-    return res.status(400).json({ message: "Invalid ID format" });
+  console.log(`Request to delete recommendation with id: ${id}, by userId: ${userId}`); // Log ID dan userId
+
+  if (!userId) {
+    console.log("Error: userId is missing");  // Log jika userId tidak ada
+    return res.status(400).json({ message: "userId is required" });
   }
 
   try {
-    const userId = req.user.id; 
-    const result = await deleteHistoryById(id, userId); 
-    if (!result) {
-      return res.status(404).json({ message: "History not found or not authorized to delete." });
+    const result = await deleteRecommendationById(id, userId);
+    if (result === null) {
+      console.log(`Recommendation with id ${id} not found for userId ${userId}`);  // Log jika tidak ditemukan
+      return res.status(404).json({ message: "Recommendation not found." });
     }
-
-    res.status(200).json({ message: "History deleted successfully." });
+    console.log(`Recommendation with id ${id} successfully deleted by userId ${userId}`);  // Log sukses
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('Error deleting history by ID:', error);
-    res.status(500).json({ message: 'Failed to delete history.', error: error.message });
+    console.error(`Error during delete operation: ${error.message}`); // Log error jika terjadi kesalahan
+    return res.status(500).json({
+      message: "Failed to delete recommendation.",
+      error: error.message,
+    });
   }
 });
-
-// Delete All History
-router.delete('/histories/user/:userId', authenticateJWT, async (req, res) => {
-  const { userId } = req.params;
-  const requesterId = req.user.id; 
-
-  if (Number(userId) !== requesterId) {
-    return res.status(403).json({ message: "Unauthorized to delete this user's history." });
-  }
-
-  try {
-    const result = await deleteAllHistoryByUserId(Number(userId), requesterId);
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 
 
 module.exports = router;

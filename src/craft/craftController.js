@@ -10,19 +10,19 @@ const { createCraftSchema } = require("./craftValidation");
 
 const router = Router();
 
+// Add Craft
 router.post(
   "/addcrafts",
-  validateRequest(createCraftSchema), // Assuming you want to validate the schema
+  validateRequest(createCraftSchema), 
   async (req, res) => {
     let crafts = req.body;
 
-    // If crafts is not an array, convert it into one
     if (!Array.isArray(crafts)) {
-      crafts = [crafts]; // Convert single object to an array
+      crafts = [crafts]; 
     }
 
     try {
-      const addedCrafts = await addCraft(crafts); // This now handles both single and array input
+      const addedCrafts = await addCraft(crafts);
       res.status(201).json({
         message: "Crafts added successfully",
         addedCrafts: addedCrafts,

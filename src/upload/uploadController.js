@@ -66,7 +66,19 @@ router.post(
       const { uploadedFile, publicUrl } = await handleFileUpload({ originalname, buffer, mimetype, size: req.file.size }, req.user.id, req.body);
 
       // Get prediction from Flask API
-      const { prediction, confidence } = await getPredictionFromAPI(publicUrl);
+      const { prediction, confidence, message } = await getPredictionFromAPI(publicUrl);
+
+      // If confidence is low, return the prediction and confidence only, without recommendations
+      if (confidence < 70) {
+        return res.status(200).json({
+          message: `Prediksi memiliki confidence yang rendah: ${confidence}%`,
+          data: {
+            imageUrl: publicUrl,
+            prediction,
+            confidence
+          }
+        });
+      }
 
       // Save prediction to database
       await savePredictionToDatabase(uploadedFile, prediction, confidence, req.user.id);
@@ -77,6 +89,8 @@ router.post(
       res.status(201).json({
         message: "File uploaded successfully, prediction processed, and recommendations fetched.",
         data: recommendations,
+        prediction,
+        confidence,
       });
     } catch (error) {
       console.error("Server Error:", error);
@@ -84,5 +98,6 @@ router.post(
     }
   }
 );
+
 
 module.exports = router;
