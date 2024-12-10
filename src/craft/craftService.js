@@ -10,15 +10,6 @@ const storage = new Storage({
 });
 const bucketName = "craft_picture";
 
-const downloadImage = async (url) => {
-  const response = await axios({
-    url,
-    method: "GET",
-    responseType: "stream",
-  });
-  return response.data;
-};
-
 const uploadToCloudStorage = async (stream, destination) => {
   try {
     const file = storage.bucket(bucketName).file(destination);
@@ -43,77 +34,47 @@ const uploadToCloudStorage = async (stream, destination) => {
   }
 };
 
-const updateCraft = async (id, craft) => {
-  const { wasteType, title, description, imageUrl, tutorialUrl } = craft;
-
-  const existingCraft = await prisma.craft.findUnique({
-    where: { id: Number(id) },
-  });
-
-  if (!existingCraft) {
-    throw new Error(`Craft with ID ${id} not found`);
-  }
-
-  let updatedImageUrl = imageUrl || existingCraft.imageUrl;
-
-  if (imageUrl && imageUrl !== existingCraft.imageUrl) {
-    const imageStream = await downloadImage(imageUrl);
-    const extension = path.extname(imageUrl).toLowerCase();
-    const destination = `${craft.wasteType}/${Date.now()}${extension}`;
-    updatedImageUrl = await uploadToCloudStorage(imageStream, destination);
-  }
-
-  const transactionResult = await prisma.$transaction(async (prisma) => {
-    const updatedCraft = await prisma.craft.update({
-      where: { id: Number(id) },
-      data: {
-        wasteType: wasteType || existingCraft.wasteType,
-        title: title || existingCraft.title,
-        description: description || existingCraft.description,
-        imageUrl: updatedImageUrl,
-        tutorialUrl: tutorialUrl || existingCraft.tutorialUrl,
-      },
-    });
-
-    const userRecommendations = await prisma.userrecommendation.findMany({
-      where: { craftId: Number(id) },
-    });
-
-    const userRecommendationIds = userRecommendations.map((rec) => rec.id);
-
-    if (userRecommendationIds.length > 0) {
-      await prisma.userrecommendation.updateMany({
-        where: { craftId: Number(id) },
-        data: { updatedAt: new Date() },
-      });
-    }
-
-    return updatedCraft;
-  });
-
-  return transactionResult;
-};
-
 const addCraft = async (crafts) => {
   if (!Array.isArray(crafts)) {
     crafts = [crafts];
   }
 
   try {
-    for (let craft of crafts) {
-      const { imageUrl } = craft;
-      if (imageUrl) {
-        const imageStream = await downloadImage(imageUrl);
-        const extension = path.extname(imageUrl).toLowerCase();
-        const destination = `${craft.wasteType}/${Date.now()}${extension}`;
-        craft.imageUrl = await uploadToCloudStorage(imageStream, destination);
-      }
-    }
+    const addedCrafts = [];
+    for (const craft of crafts) {
+      let { wasteType, title, description, imageUrl, tutorialUrl } = craft;
+      let uploadedImageUrl = imageUrl;
 
-    const addedCrafts = await prisma.craft.createMany({
-      data: crafts,
-      skipDuplicates: true,
-    });
+      if (imageUrl) {
+        try {
+          const response = await axios({
+            url: imageUrl,
+            method: "GET",
+            responseType: "stream",
+          });
+
+          const extension = path.extname(imageUrl).toLowerCase();
+          const destination = `${Date.now()}${extension}`;
+
+          uploadedImageUrl = await uploadToCloudStorage(response.data, destination);
+
+        } catch (error) {
+          throw new Error("Error uploading image to Cloud Storage: " + error.message);
+        }
+      }
+
+      const addedCraft = await prisma.craft.create({
+        data: {
+          wasteType,
+          title,
+          description,
+          imageUrl: uploadedImageUrl,
+          tutorialUrl,
+        },
+      });
+
+      addedCrafts.push(addedCraft);
+    }
 
     return addedCrafts;
   } catch (error) {
@@ -137,41 +98,65 @@ const deleteCraft = async (id) => {
   try {
     const craft = await prisma.craft.findUnique({
       where: { id },
-      include: {
-        userrecommendations: true,
-      },
     });
 
     if (!craft) {
       throw new Error("Craft not found");
     }
 
-    const userRecommendationIds = craft.userrecommendations.map((rec) => rec.id);
-
-    await prisma.favorite.deleteMany({
-      where: {
-        userRecommendationId: { in: userRecommendationIds },
-      },
-    });
-
-    await prisma.history.deleteMany({
-      where: {
-        userRecommendationId: { in: userRecommendationIds },
-      },
-    });
-
-    await prisma.userrecommendation.deleteMany({
-      where: { craftId: id },
-    });
-
     await prisma.craft.delete({
       where: { id },
     });
 
-    return { message: "Craft and related data deleted successfully" };
+    return { message: "Craft deleted successfully" };
   } catch (error) {
     throw new Error("Error deleting craft: " + error.message);
   }
+};
+
+const updateCraft = async (id, craft) => {
+  const { wasteType, title, description, imageUrl, tutorialUrl } = craft;
+
+  const existingCraft = await prisma.craft.findUnique({
+    where: { id: Number(id) },
+  });
+
+  if (!existingCraft) {
+    throw new Error(`Craft with ID ${id} not found`);
+  }
+
+  let updatedImageUrl = imageUrl;
+
+  if (imageUrl && imageUrl !== existingCraft.imageUrl) {
+    try {
+      const response = await axios({
+        url: imageUrl,
+        method: "GET",
+        responseType: "stream",
+      });
+
+      const extension = path.extname(imageUrl).toLowerCase();
+      const destination = `${id}/${Date.now()}${extension}`;
+
+      updatedImageUrl = await uploadToCloudStorage(response.data, destination);
+
+    } catch (error) {
+      throw new Error("Error uploading image to Cloud Storage: " + error.message);
+    }
+  }
+
+  const updatedCraft = await prisma.craft.update({
+    where: { id: Number(id) },
+    data: {
+      wasteType: wasteType || existingCraft.wasteType,
+      title: title || existingCraft.title,
+      description: description || existingCraft.description,
+      imageUrl: updatedImageUrl || existingCraft.imageUrl,
+      tutorialUrl: tutorialUrl || existingCraft.tutorialUrl,
+    },
+  });
+
+  return updatedCraft;
 };
 
 module.exports = {
