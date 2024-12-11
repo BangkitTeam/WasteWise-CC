@@ -1,7 +1,7 @@
 # WasteWise-API
 
 ## Description
-Welcome to the API documentation for the Meditazone-App. This API provides endpoints for user authentication, meditation data retrieval, quotes, and articles related to meditation and mindfulness.
+Welcome to the API documentation for the WasteWise Apps
 
 API Documentation : https://documenter.getpostman.com/view/39625990/2sAYBYgWGu
 
