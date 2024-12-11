@@ -37,5 +37,4 @@ npx prisma migrate dev
 ```bash
 npm run dev
 ```
-<br> </br>
 
