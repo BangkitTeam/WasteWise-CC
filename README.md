@@ -1,6 +1,6 @@
 # WasteWise-API
 
-Welcome to the API documentation for the WasteWise App. This API provide authentication, upload images, user recommendation, favorite user recommendation, and history recommendation
+Welcome to the API documentation for the WasteWise App. This API provide authentication, upload images, connecting to ML API, user recommendation, favorite user recommendation, and history recommendation
 
 API Documentation : https://documenter.getpostman.com/view/39625990/2sAYBYgWGu
 
