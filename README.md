@@ -1,3 +1,4 @@
+# WasteWise-CC
 ### 1. Navigate to the Project Folder
 
 ```bash
@@ -29,3 +30,6 @@ npx prisma migrate dev
 ```bash
 npm run dev
 ```
+
+## API DOCS
+https://documenter.getpostman.com/view/39625990/2sAYBYgWGu
