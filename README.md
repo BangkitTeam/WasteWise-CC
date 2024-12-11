@@ -30,6 +30,6 @@ npx prisma migrate dev
 ```bash
 npm run dev
 ```
-
+<br> </br>
 ## API DOCS
 https://documenter.getpostman.com/view/39625990/2sAYBYgWGu
