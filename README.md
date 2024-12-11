@@ -1,7 +1,7 @@
 # WasteWise-API
 
 ## Description
-Welcome to the API documentation for the WasteWise App. This API prove authentication, Upload, Favorite, Recommend, and History
+Welcome to the API documentation for the WasteWise App. This API provide authentication, Upload, Favorite, Recommend, and History API
 
 API Documentation : https://documenter.getpostman.com/view/39625990/2sAYBYgWGu
 
